@@ -81,8 +81,8 @@ export default function Home() {
       </nav>
 
       {mode === "learn" ? (
-        <section className="learning-area">
-          <aside className="character-list" aria-label={language === "hanzi" ? "汉字列表" : "英语单词列表"}>
+        <section className={`learning-area ${language === "english" ? "english-learning" : ""}`}>
+          <aside className={`character-list ${language === "english" ? "english-list" : ""}`} aria-label={language === "hanzi" ? "汉字列表" : "英语单词列表"}>
             {lessons.map((item, itemIndex) => <button key={item.char} className={itemIndex === index ? "selected" : ""} onClick={() => setIndex(itemIndex)} style={{"--item-color": item.color} as React.CSSProperties}><span>{item.icon}</span><b>{item.char}</b></button>)}
           </aside>
           <article className="lesson-card" style={{"--accent": current.color} as React.CSSProperties}>

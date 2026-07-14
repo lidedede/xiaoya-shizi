@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { englishLessons } from "./english-lessons";
 import { lessons as hanziLessons } from "./lessons";
+import { poems } from "./poems";
 
-type Language = "hanzi" | "english";
+type Language = "hanzi" | "english" | "poetry";
 const palette = ["#ff9f43", "#817bd6", "#62a76b", "#3da5d9", "#eb6652", "#82a44f", "#e47f99", "#d45f6b"];
 
 function speak(text: string, language: Language) {
@@ -27,7 +28,7 @@ export default function Home() {
   const [mode, setMode] = useState<"learn" | "quiz">("learn");
   const [quizChar, setQuizChar] = useState("日");
   const [result, setResult] = useState("");
-  const sourceLessons = language === "hanzi" ? hanziLessons : englishLessons;
+  const sourceLessons = language === "english" ? englishLessons : hanziLessons;
   const lessons = useMemo(() => sourceLessons.map((lesson, lessonIndex) => ({ ...lesson, color: palette[lessonIndex % palette.length] })), [sourceLessons]);
   const current = lessons[index];
   const options = useMemo(() => {
@@ -40,7 +41,7 @@ export default function Home() {
   useEffect(() => { window.speechSynthesis?.getVoices(); }, []);
 
   const switchLanguage = (nextLanguage: Language) => {
-    const first = nextLanguage === "hanzi" ? hanziLessons[0] : englishLessons[0];
+    const first = nextLanguage === "english" ? englishLessons[0] : hanziLessons[0];
     setLanguage(nextLanguage); setIndex(0); setQuizChar(first.char); setResult(""); setMode("learn");
   };
 
@@ -74,13 +75,29 @@ export default function Home() {
       <nav className="language-tabs" aria-label="学习语言">
         <button className={language === "hanzi" ? "active" : ""} onClick={() => switchLanguage("hanzi")}>🀄 汉字乐园</button>
         <button className={language === "english" ? "active" : ""} onClick={() => switchLanguage("english")}>🔤 英语单词</button>
+        <button className={language === "poetry" ? "active" : ""} onClick={() => switchLanguage("poetry")}>📜 古诗启蒙</button>
       </nav>
-      <nav className="tabs" aria-label="学习模式">
+      {language !== "poetry" && <nav className="tabs" aria-label="学习模式">
         <button className={mode === "learn" ? "active" : ""} onClick={() => setMode("learn")}>📖 {language === "hanzi" ? "认识汉字" : "认识单词"}</button>
         <button className={mode === "quiz" ? "active" : ""} onClick={() => { setMode("quiz"); setResult(""); setTimeout(() => speak(quizChar, language), 100); }}>🎈 {language === "hanzi" ? "找字游戏" : "找词游戏"}</button>
-      </nav>
+      </nav>}
 
-      {mode === "learn" ? (
+      {language === "poetry" ? (
+        <section className="poetry-area">
+          <aside className="poem-list" aria-label="古诗列表">
+            {poems.map((poem, poemIndex) => <button key={poem.title} className={poemIndex === index ? "selected" : ""} onClick={() => setIndex(poemIndex)}><span>{poem.icon}</span><span><b>{poem.title}</b><small>{poem.author}</small></span></button>)}
+          </aside>
+          <article className="poem-card">
+            <div className="poem-paper">
+              <div className="poem-icon">{poems[index].icon}</div>
+              <h2>{poems[index].title}</h2><p className="poem-author">{poems[index].author}</p>
+              <div className="poem-lines">{poems[index].lines.map((line) => <button key={line} onClick={() => speak(line, "poetry")}>{line}<span>🔊</span></button>)}</div>
+              <button className="read-poem" onClick={() => speak(`${poems[index].title}，${poems[index].author}。${poems[index].lines.join("。")}`, "poetry")}>▶ 朗读整首诗</button>
+            </div>
+            <div className="poem-meaning"><p className="eyebrow">小小诗意</p><h3>这首诗在说什么？</h3><p>{poems[index].meaning}</p><button onClick={() => speak(poems[index].meaning, "poetry")}>🔊 听诗意讲解</button><div className="next-poem"><span>第 {index + 1} 首，共 {poems.length} 首</span><button onClick={() => setIndex((index + 1) % poems.length)}>下一首 →</button></div></div>
+          </article>
+        </section>
+      ) : mode === "learn" ? (
         <section className={`learning-area ${language === "english" ? "english-learning" : ""}`}>
           <aside className={`character-list ${language === "english" ? "english-list" : ""}`} aria-label={language === "hanzi" ? "汉字列表" : "英语单词列表"}>
             {lessons.map((item, itemIndex) => <button key={item.char} className={itemIndex === index ? "selected" : ""} onClick={() => setIndex(itemIndex)} style={{"--item-color": item.color} as React.CSSProperties}><span>{item.icon}</span><b>{item.char}</b></button>)}

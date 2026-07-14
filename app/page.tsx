@@ -1,17 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { lessons as lessonData } from "./lessons";
 
-const lessons = [
-  { char: "日", pinyin: "rì", icon: "☀️", color: "#ffb547", title: "太阳的样子", hint: "古人把太阳画成圆圆的，后来就变成了“日”。", sentence: "红红的太阳出来了。" },
-  { char: "月", pinyin: "yuè", icon: "🌙", color: "#8e8cdb", title: "弯弯的月亮", hint: "看，弯弯的月亮挂在夜空中。", sentence: "月亮像一条小船。" },
-  { char: "山", pinyin: "shān", icon: "⛰️", color: "#66a96c", title: "高高的山峰", hint: "中间高、两边低，像三座连在一起的山峰。", sentence: "我们一起去爬山。" },
-  { char: "水", pinyin: "shuǐ", icon: "💧", color: "#4ca9dc", title: "流动的小河", hint: "中间是水流，两边像溅起的小水花。", sentence: "小鱼在水里游。" },
-  { char: "火", pinyin: "huǒ", icon: "🔥", color: "#ef745a", title: "跳舞的火苗", hint: "一团火焰，正在轻轻地跳舞。小朋友不要靠近火哦。", sentence: "火苗亮亮的。" },
-  { char: "木", pinyin: "mù", icon: "🌳", color: "#8caa52", title: "一棵大树", hint: "一横是树枝，一竖是树干，下面是树根。", sentence: "小鸟站在木头上。" },
-  { char: "人", pinyin: "rén", icon: "🧒", color: "#e98a9e", title: "走路的人", hint: "一撇一捺，像一个人迈开双腿向前走。", sentence: "我是一个快乐的人。" },
-  { char: "口", pinyin: "kǒu", icon: "👄", color: "#dc6d78", title: "方方的小嘴巴", hint: "张开小嘴巴，就像一个方方的口。", sentence: "我用口来说话。" },
-];
+const palette = ["#ff9f43", "#817bd6", "#62a76b", "#3da5d9", "#eb6652", "#82a44f", "#e47f99", "#d45f6b"];
+const lessons = lessonData.map((lesson, index) => ({ ...lesson, color: palette[index % palette.length] }));
 
 function speak(text: string) {
   if (!("speechSynthesis" in window)) return;
@@ -34,7 +27,9 @@ export default function Home() {
   const current = lessons[index];
   const options = useMemo(() => {
     const others = lessons.filter((x) => x.char !== quizChar).slice(index % 5, index % 5 + 2);
-    return [quizChar, ...others.map((x) => x.char)].sort(() => 0.5 - Math.random());
+    const choices = [quizChar, ...others.map((x) => x.char)];
+    const offset = index % choices.length;
+    return [...choices.slice(offset), ...choices.slice(0, offset)];
   }, [quizChar, index]);
 
   useEffect(() => { window.speechSynthesis?.getVoices(); }, []);
@@ -80,7 +75,7 @@ export default function Home() {
               <div className="character-row"><div className="big-char">{current.char}</div><div><div className="pinyin">{current.pinyin}</div><button className="sound" onClick={() => speak(current.char)}>🔊 听读音</button></div></div>
               <h2>{current.title}</h2><p className="explanation">{current.hint}</p>
               <button className="sentence" onClick={() => speak(current.sentence)}><span>💬</span><span><small>听听这个句子</small><b>{current.sentence}</b></span><i>🔊</i></button>
-              <div className="next-row"><span>今天已经认识 {index + 1} 个字啦</span><button onClick={() => setIndex((index + 1) % lessons.length)}>下一个字 →</button></div>
+              <div className="next-row"><span>第 {index + 1} 个，共 {lessons.length} 个字</span><button onClick={() => setIndex((index + 1) % lessons.length)}>下一个字 →</button></div>
             </div>
           </article>
         </section>
